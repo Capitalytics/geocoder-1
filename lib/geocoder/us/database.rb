@@ -129,6 +129,10 @@ module Geocoder::US
       (["metaphone(?,5)"] * list.length).join(",")
     end
 
+    def union_placeholders_for (list)
+      (["select ? as a"] * list.length).join(' union ')
+    end
+
     # Execute an SQL statement, bind a list of parameters, and
     # return the result as a list of hashes.
     def execute (sql, *params)
@@ -163,41 +167,47 @@ module Geocoder::US
       rows.reverse!
     end
    
-    def places_by_zip (city, zip)
-      execute("SELECT *, levenshtein(?, city) AS city_score
-               FROM place WHERE zip = ? order by priority desc;", city, zip)
+    def places_by_zip (cities, zip)
+      unions = union_placeholders_for(cities)
+      params = cities + [zip]
+      execute("SELECT place.*, levenshtein(t.a, city) AS city_score
+               FROM place
+               INNER JOIN (#{unions}) t
+               WHERE zip = ? order by priority desc;", *params)
     end
 
     # Query the place table for by city, optional state, and zip.
     # The metaphone index on the place table is used to match
     # city names.
-    def places_by_city (city, tokens, state)
-      if city.nil?
-        city = ""
-      end
+    def places_by_city (cities, tokens, state)
       if state.nil? or state.empty?
         and_state = ""
-        args = [city] + tokens.clone
+        args = cities + tokens.clone
       else
         and_state = "AND state = ?"
-        args = [city] + tokens.clone + [state]
+        args = cities + tokens.clone + [state]
       end
       metaphones = metaphone_placeholders_for tokens
-      execute("SELECT *, levenshtein(?, city) AS city_score
-                FROM place WHERE city_phone IN (#{metaphones}) #{and_state} order by priority desc;", *args)
+      unions = union_placeholders_for(cities)
+      execute("SELECT place.*, levenshtein(t.a, city) AS city_score
+                FROM place
+                INNER JOIN (#{unions}) t
+                WHERE city_phone IN (#{metaphones}) #{and_state} order by priority desc;", *args)
     end
 
     # Generate an SQL query and set of parameters against the feature and range
     # tables for a street name and optional building number. The SQL is
     # used by candidate_records and more_candidate_records to filter results
     # by ZIP code.
-    def features_by_street (street, tokens)
+    def features_by_street (streets, tokens)
       metaphones = (["metaphone(?,5)"] * tokens.length).join(",")
+      union = union_placeholders_for(streets)
       sql = "
-        SELECT feature.*, levenshtein(?, street) AS street_score
+        SELECT feature.*, levenshtein(t.a, street) AS street_score
           FROM feature
+          INNER JOIN (#{union}) t
           WHERE street_phone IN (#{metaphones})"
-      params = [street] + tokens
+      params = streets + tokens
       return [sql, params]
     end
 
@@ -205,8 +215,8 @@ module Geocoder::US
     # building number, street name, and list of candidate ZIP codes.
     # The metaphone and ZIP code indexes on the feature table are
     # used to match results.
-    def features_by_street_and_zip (street, tokens, zips)
-      sql, params = features_by_street(street, tokens)
+    def features_by_street_and_zip (streets, tokens, zips)
+      sql, params = features_by_street(streets, tokens)
       in_list = placeholders_for zips
       sql    += " AND feature.zip IN (#{in_list})"
       params += zips
@@ -217,8 +227,8 @@ module Geocoder::US
     # building number, street name, and list of candidate ZIP codes.
     # The ZIP codes are reduced to a set of 3-digit prefixes, broadening
     # the search area.
-    def more_features_by_street_and_zip (street, tokens, zips)
-      sql, params = features_by_street(street, tokens)
+    def more_features_by_street_and_zip (streets, tokens, zips)
+      sql, params = features_by_street(streets, tokens)
       if !zips.empty? and !zips[0].nil?
         #puts "zip results 2"
         zip3s = zips.map {|z| z[0..2]+'%'}.to_set.to_a
@@ -358,11 +368,11 @@ module Geocoder::US
       places = []
       candidates = []
 
-      city = address.city.sort {|a,b|a.length <=> b.length}[0]
+#      city = address.city.sort {|a,b|a.length <=> b.length}[0]
       if(!address.zip.empty? && !address.zip.nil?)
-         places = places_by_zip city, address.zip 
+         places = places_by_zip address.city, address.zip 
       end
-      places = places_by_city city, address.city_parts, address.state if places.empty?
+      places = places_by_city address.city, address.city_parts, address.state if places.empty?
       return [] if places.empty?
 
       # setting city will remove city from street, so save off before
@@ -370,11 +380,11 @@ module Geocoder::US
       return places if address.street.empty?
       
       zips = unique_values places, :zip
-      street = address.street.sort {|a,b|a.length <=> b.length}[0]
-      candidates = features_by_street_and_zip street, address.street_parts, zips
+#      street = address.street.sort {|a,b|a.length <=> b.length}[0]
+      candidates = features_by_street_and_zip address.street, address.street_parts, zips
 
       if candidates.empty?
-        candidates = more_features_by_street_and_zip street, address.street_parts, zips
+        candidates = more_features_by_street_and_zip address.street, address.street_parts, zips
       end
 
       merge_rows! candidates, places, :zip
@@ -668,8 +678,8 @@ module Geocoder::US
     # place name for the given city, state, or ZIP.
     def geocode_place (address, canonicalize=false)
       places = []
-      places = places_by_zip address.text, address.zip if !address.zip.empty? or !address.zip.nil?
-      places = places_by_city address.text, address.city_parts, address.state if places.empty?
+      places = places_by_zip address.city, address.zip if !address.zip.empty? or !address.zip.nil?
+      places = places_by_city address.city, address.city_parts, address.state if places.empty?
       best_places address, places, canonicalize
     end
 
