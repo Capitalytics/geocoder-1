@@ -17,10 +17,15 @@ end
 module Geocoder::US
   # Provides an interface to a Geocoder::US database.
   class Database
-    Street_Weight = 3.0
-    Number_Weight = 2.0
-    Parity_Weight = 1.25
-    City_Weight = 1.0
+    WEIGHTS = {
+      :street => 3.0,
+      :number => 2.0,
+      :parity => 1.25,
+      :city => 1.0,
+      :prenum => 1.0,
+      :state => 1.0,
+      :zip => 1.0,
+    }
     @@mutex = Mutex.new
 
     # Takes the path of an SQLite 3 database prepared for Geocoder::US
@@ -378,7 +383,7 @@ module Geocoder::US
       # setting city will remove city from street, so save off before
       address.city = unique_values places, :city
       return places if address.street.empty?
-      
+
       zips = unique_values places, :zip
 #      street = address.street.sort {|a,b|a.length <=> b.length}[0]
       candidates = features_by_street_and_zip address.street, address.street_parts, zips
@@ -452,18 +457,20 @@ module Geocoder::US
       for candidate in candidates
         candidate[:components] = {}
         compare = [:prenum, :state, :zip]
-        denominator = compare.length + Street_Weight + City_Weight
+        denominator = compare.length + WEIGHTS[:street] + WEIGHTS[:city]
 
-        street_score = (1.0 - candidate[:street_score].to_f) * Street_Weight
+        candidate[:street_score] ||= 1.0
+        street_score = (1.0 - candidate[:street_score].to_f) * WEIGHTS[:street]
         candidate[:components][:street] = street_score
-        city_score   = (1.0 - candidate[:city_score].to_f) * City_Weight
+        candidate[:city_score] ||= 1.0
+        city_score   = (1.0 - candidate[:city_score].to_f) * WEIGHTS[:city]
         candidate[:components][:city] = city_score
         score = street_score + city_score
 
         compare.each {|key|
           src  = address.send(key); src = src ? src.downcase : ""
           dest = candidate[key]; dest = dest ? dest.downcase : ""
-          item_score = (src == dest) ? 1 : 0
+          item_score = (src == dest) ? (WEIGHTS[key] || 1.0) : 0.0
           candidate[:components][key] = item_score
           score += item_score
         }
@@ -476,20 +483,20 @@ module Geocoder::US
               candidate[:number], 
               address.number].map {|s|s.to_i}
           if candidate[:precision] == :range
-            subscore += Number_Weight
+            subscore += WEIGHTS[:number]
           elsif assigned > 0
             # only credit number subscore if assigned
-            subscore += Number_Weight/(assigned - hn).abs.to_f
+            subscore += WEIGHTS[:number]/(assigned - hn).abs.to_f
           end
           candidate[:components][:number] = subscore
           if hn > 0 and assigned > 0
             # only credit parity if a number was given *and* assigned
-            parity += Parity_Weight/2.0 if fromhn % 2 == hn % 2
-            parity += Parity_Weight/2.0 if tohn % 2 == hn % 2
+            parity += WEIGHTS[:parity]/2.0 if fromhn % 2 == hn % 2
+            parity += WEIGHTS[:parity]/2.0 if tohn % 2 == hn % 2
           end
           candidate[:components][:parity] = parity
           score += subscore + parity
-          denominator += Number_Weight + Parity_Weight
+          denominator += WEIGHTS[:number] + WEIGHTS[:parity]
         end
         candidate[:components][:total] = score.to_f
         candidate[:components][:denominator] = denominator
