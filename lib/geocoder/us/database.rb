@@ -50,6 +50,11 @@ module Geocoder::US
       @dbtype = options[:dbtype]
       @debug = options[:debug]
       @threadsafe = options[:threadsafe]
+      if options[:weights]
+        options[:weights].each do |key, weight|
+          WEIGHTS[key] = weight
+        end
+      end
       tune options[:helper], options[:cache_size]
     end
 
@@ -664,18 +669,18 @@ module Geocoder::US
       if !by_name.nil?
         begin
           by_name.values.each {|v| 
-             v.sort! {|a,b|
-               a[:zip] <=> b[:zip]
-             }}
-            rescue
+            v.sort! {|a,b|
+              a[:zip] <=> b[:zip]
+            }}
+        rescue
 
-            end
-      places = by_name.map {|k,v| v[0]}
-   
-      places.each {|record| clean_record! record}
-      places.each {|record|
-        record[:precision] = (record[:zip] == address.zip ? :zip : :city)
-      }
+        end
+        places = by_name.map {|k,v| v[0]}
+
+        places.each {|record| clean_record! record}
+        places.each {|record|
+          record[:precision] = (record[:zip] == address.zip ? :zip : :city)
+        }
       end
       places
     end
