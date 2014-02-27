@@ -149,7 +149,7 @@ int metaphone(const char *Word, char *Metaph, int max_phones) {
             }
 
             /* Drop duplicates except for CC    */
-            if (*(n - 1) == *n && *n != 'C')
+            if (n > n_start && *(n - 1) == *n && *n != 'C')
                 continue;
 
             /* Check for F J L M N R  or first letter vowel */
@@ -159,7 +159,7 @@ int metaphone(const char *Word, char *Metaph, int max_phones) {
             else switch (*n)
             {
                 case 'B':
-                    if (n < n_end || *(n - 1) != 'M')
+                    if (n < n_end || n == n_start || *(n - 1) != 'M')
                         *Metaph++ = *n;
                     break;
 
@@ -200,15 +200,15 @@ int metaphone(const char *Word, char *Metaph, int max_phones) {
                     break;
 
                 case 'H':
-                    if (!varson(*(n - 1)) && (!vowel(*(n - 1)) ||
-                                vowel(*(n + 1))))
+                    if (n == n_start || (!varson(*(n - 1)) && (!vowel(*(n - 1)) ||
+                                vowel(*(n + 1)))))
                     {
                         *Metaph++ = 'H';
                     }
                     break;
 
                 case 'K':
-                    if (*(n - 1) != 'C')
+                    if (n == n_start || *(n - 1) != 'C')
                         *Metaph++ = 'K';
                     break;
 
