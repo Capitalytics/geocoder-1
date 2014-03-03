@@ -1,11 +1,11 @@
 Gem::Specification.new do |s|
-    s.name          = 'Geocoder-US'
-    s.version       = "2.0.4"
-    s.author        = "Schuyler Erle"
-    s.email         = 'geocoder@entropyfree.com'
+    s.name          = 'geocoder-jablan'
+    s.version       = "1.0.3"
+    s.authors       = ["Schuyler Erle", "Mladen Jablanovic"]
     s.description   = "US address geocoding based on TIGER/Line."
     s.summary       = "US address geocoding based on TIGER/Line."
-    s.homepage      = "http://geocoder.us/"
+    s.homepage      = "https://github.com/jablan/geocoder"
+    s.email         = "jablan@radioni.ca"
     s.files         = ["lib/geocoder/us.rb"] + Dir["lib/geocoder/us/*"] + Dir["tests/*"]
     s.require_path  = "lib"
     s.test_files    = "test/run.rb"
