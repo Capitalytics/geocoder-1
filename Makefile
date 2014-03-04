@@ -1,6 +1,6 @@
 all:
 	make -C src install
-	gem build gemspec
+	gem build geocoder-jablan.gemspec
 
 test: all
 	ruby -Ilib tests/run.rb
