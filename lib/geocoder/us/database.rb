@@ -263,7 +263,7 @@ module Geocoder::US
         params += [prenum]
       end
       sql += " 
-          ORDER BY min(abs(fromhn - ?), abs(tohn - ?))
+          ORDER BY (fromhn - ?) * (tohn - ?)
           LIMIT #{limit};"
       params += [number, number]
       execute sql, *params
