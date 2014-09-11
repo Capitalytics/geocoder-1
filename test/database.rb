@@ -109,18 +109,18 @@ class TestDatabase < Test::Unit::TestCase
          end
          
          def test_should_get_street_number_correctly
-           result = @db.geocode("460 West St, Amherst MA 01002-2964", true)
-           assert_equal '460', result[0][:number] 
+           result = @db.geocode("462 West St, Amherst MA 01002-2964", true)
+           assert_equal '462', result[0][:number] 
          end
          
          def test_should_geocode_with_hash
-           result = @db.geocode({:street => "2200 Wilson Blvd", :city => "Arlington", :region => "VA", :postal_code => "22201"}, true)
+           result = @db.geocode({:number => '2200', :street => "Wilson Blvd", :city => "Arlington", :region => "VA", :postal_code => "22201"}, true)
            result2 = @db.geocode("2200 Wilson Blvd, Arlington, VA 22201")
            assert_equal result2,result
          end
          
          def test_should_work_with_partial_hash
-           result = @db.geocode({:street => "2200 Wilson Blvd", :postal_code => "22201"})
+           result = @db.geocode({:number => '2200', :street => "Wilson Blvd", :postal_code => "22201"})
            assert_equal result[0][:precision],:range
          end
          

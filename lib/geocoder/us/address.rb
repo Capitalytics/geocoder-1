@@ -279,11 +279,11 @@ module Geocoder::US
     end
 
     def po_box?
-      Match[:po_box].match @text
+      Match[:po_box].match(@text) != nil
     end
     
     def intersection?
-      Match[:at].match @text
+      Match[:at].match(@text) != nil
     end
   end
 end

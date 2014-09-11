@@ -178,6 +178,7 @@ module Geocoder::US
     end
    
     def places_by_zip (cities, zip)
+      cities = [''] if cities.empty?
       unions = union_placeholders_for(cities)
       params = cities + [zip]
       execute("SELECT place.*, levenshtein(t.a, city) AS city_score

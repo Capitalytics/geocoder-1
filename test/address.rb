@@ -61,7 +61,7 @@ class TestAddress < Test::Unit::TestCase
   
   def test_po_box
     addr_po = Address.new "PO Box 1111 Herndon VA 20171"
-    assert addr_po.po_box?, true 
+    assert_equal addr_po.po_box?, true 
   end
   
 
@@ -174,7 +174,7 @@ class TestAddress < Test::Unit::TestCase
   
   def test_skip_parse
     addresses = [
-      {:street => "1233 Main St", :city => "Springfield", :region => "VA", :postal_code => "12345", :final_number => "1233", :parsed_street => "main st"},
+      {:street => "Main St", :city => "Springfield", :region => "VA", :postal_code => "12345", :number => '1233', :final_number => "1233", :parsed_street => "main st"},
       {:street => "somewhere Ln", :city => "Somewhere", :region => "WI", :postal_code => "22222", :number => "402", :parsed_street => "somewhere ln", :final_number => "402"},
       ]  
       for preparsed_address in addresses
