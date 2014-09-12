@@ -1,22 +1,25 @@
 #!/usr/bin/ruby
 
-require 'test/unit'
 require 'geocoder/us/database'
-require 'fastercsv'
+require 'csv'
 
-db = Geocoder::US::Database.new("/mnt/tiger2008/geocoder.db",
-                                "/home/sderle/geocoder/lib/libsqlite3_geocoder.so")
+db = Geocoder::US::Database.new(ARGV[0])
 
-if ARGV.length == 1
-  result = db.geocode(ARGV[0], 0, 50)
+if ARGV.length == 2
+  result = db.geocode(ARGV[1], 0, 50)
   p result
 else
-  FasterCSV.open(ARGV[1], "w", {:headers => true, :write_headers => true}) do |output|
-    FasterCSV.foreach(ARGV[0], {:headers => true}) do |row|
+  headers_written = false
+  CSV.open(ARGV[2], "w", {:headers => true, :write_headers => true}) do |output|
+    CSV.foreach(ARGV[1], {:headers => true}) do |row|
+      unless headers_written
+        output << row.headers
+        headers_written = true
+      end
       result = db.geocode(row[0])
       count  = result.map{|a|[a[:lat], a[:lon]]}.to_set.length
       if !result.empty?
-        row.headers[1..13].each_with_index {|f,i|
+        row.headers[1..-3].each_with_index {|f,i|
           if result[0][f.to_sym] != row[i+1]
             print "#{row[0]} !#{f} -> #{result[0][f]} != #{row[i+1]}\n"
           end

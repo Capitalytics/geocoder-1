@@ -86,15 +86,16 @@ class TestDatabase < Test::Unit::TestCase
          def test_sample
            return if @db.nil?
            # This test won't run properly on 1.8.7 or lower (?) - APS
-           return if RUBY_VERSION.split(".")[1] <= '8'
+#           return if RUBY_VERSION.split(".")[1] <= '8'
            CSV.foreach(Base + "/data/db-test.csv", {:headers=>true}) do |row|
-             result = @db.geocode(row[0], true)
+             result = @db.geocode(row[0])
              result[0][:count] = result.map{|a|[a[:lat], a[:lon]]}.to_set.length
              fields = row.headers - ["comment", "address"]
              fields.each {|f|
                sample = row[f] || ""
                given  = result[0][f.to_sym] || ""
                sample = sample.to_f if given.kind_of? Float or given.kind_of? Fixnum
+               sample = sample.to_sym if given.is_a?(Symbol)
                assert_equal sample, given, "row: #{row.inspect}\nfield: #{f.inspect} sample: #{sample.inspect}, given: #{given.inspect}"
         
              }
