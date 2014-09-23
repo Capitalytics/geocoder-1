@@ -1,3 +1,7 @@
+## 1.0.5
+
+* Re-query for city when fallback to adjacent ZIP happens
+
 ## 1.0.4
 
 * Improve ranking of ranges, which catches some previously missed numbers, improves score, parity

@@ -45,7 +45,7 @@ module Geocoder::US
       options = defaults.merge options
       raise ArgumentError, "can't find database #{filename}" \
         unless options[:create] or File.exists? filename
-      @db = SQLite3::Database.new( filename )
+      @db = SQLite3::Database.new( filename, :encoding => 'ISO-8859-1' )
       @st = {}
       @dbtype = options[:dbtype]
       @debug = options[:debug]
@@ -396,6 +396,11 @@ module Geocoder::US
 
       if candidates.empty?
         candidates = more_features_by_street_and_zip address.street, address.street_parts, zips
+        zips = candidates.map{|c| c[:zip]}
+        zips -= [address.zip]
+        zips.each do |zip|
+          places += places_by_zip(address.city, zip)
+        end
       end
 
       merge_rows! candidates, places, :zip
