@@ -26,19 +26,19 @@
 **  Character coding array
 */
 
-static char vsvfn[26] = {
-      1,16,4,16,9,2,4,16,9,2,0,2,2,2,1,4,0,2,4,4,1,0,0,0,8,0};
-/*    A  B C  D E F G  H I J K L M N O P Q R S T U V W X Y Z      */
+static char vsvfn[] = {
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,16,4,16,9,2,4,16,9,2,0,2,2,2,1,4,0,2,4,4,1,0,0,0,8,0};
+/*    0 1 2 3 4 5 6 7 8 9 _ _ _ _ _ _ _ A  B C  D E F G  H I J K L M N O P Q R S T U V W X Y Z      */
 
 /*
 **  Macros to access the character coding array
 */
 
-#define vowel(x)  (vsvfn[(x) - 'A'] & 1)  /* AEIOU    */
-#define same(x)   (vsvfn[(x) - 'A'] & 2)  /* FJLMNR   */
-#define varson(x) (vsvfn[(x) - 'A'] & 4)  /* CGPST    */
-#define frontv(x) (vsvfn[(x) - 'A'] & 8)  /* EIY      */
-#define noghf(x)  (vsvfn[(x) - 'A'] & 16) /* BDH      */
+#define vowel(x)  (vsvfn[(x) - '0'] & 1)  /* AEIOU    */
+#define same(x)   (vsvfn[(x) - '0'] & 2)  /* FJLMNR   */
+#define varson(x) (vsvfn[(x) - '0'] & 4)  /* CGPST    */
+#define frontv(x) (vsvfn[(x) - '0'] & 8)  /* EIY      */
+#define noghf(x)  (vsvfn[(x) - '0'] & 16) /* BDH      */
 
 int metaphone(const char *Word, char *Metaph, int max_phones) {
     char *n, *n_start, *n_end;    /* Pointers to string               */
