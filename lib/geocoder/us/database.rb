@@ -657,7 +657,7 @@ module Geocoder::US
       record[:score] = format("%.3f", record[:score]).to_f \
         unless record[:score].nil?
       record.keys.each {|k| record[k] = "" if record[k].nil? } # clean up nils
-      record.delete :components unless @debug
+#      record.delete :components unless @debug
       record.delete_if {|k,v| k.is_a? Fixnum or
           [:geometry, :side, :tlid, :fid, :fid1, :fid2, :street_phone,
            :city_phone, :fromhn, :tohn, :paflag, :flipped, :street_score,
