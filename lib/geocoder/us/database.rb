@@ -177,14 +177,15 @@ module Geocoder::US
       rows.reverse!
     end
    
-    def places_by_zip (cities, zip)
+    def places_by_zip (cities, *zips)
       cities = [''] if cities.empty?
       unions = union_placeholders_for(cities)
-      params = cities + [zip]
+      params = cities + zips
+      zip_placeholder = (['?'] * zips.length).join(', ')
       execute("SELECT place.*, levenshtein(t.a, city) AS city_score
                FROM place
                INNER JOIN (#{unions}) t
-               WHERE zip = ? order by priority desc;", *params)
+               WHERE zip IN (#{zip_placeholder}) order by priority desc;", *params)
     end
 
     # Query the place table for by city, optional state, and zip.
@@ -396,11 +397,9 @@ module Geocoder::US
 
       if candidates.empty?
         candidates = more_features_by_street_and_zip address.street, address.street_parts, zips
-        zips = candidates.map{|c| c[:zip]}
+        zips = candidates.map{|c| c[:zip]}.uniq
         zips -= [address.zip]
-        zips.each do |zip|
-          places += places_by_zip(address.city, zip)
-        end
+        places += places_by_zip(address.city, *zips)
       end
 
       merge_rows! candidates, places, :zip
@@ -481,7 +480,7 @@ module Geocoder::US
 
         # score zip depending on the same leading digits
         asked_zip = address.zip
-        found_zip = candidate[:zip]
+        found_zip = candidate[:zip] || ''
         similarity = (0..4).find{|i| asked_zip[i] != found_zip[i]}
         zip_score = similarity ? similarity * 0.2 * WEIGHTS[:zip] : WEIGHTS[:zip]
         candidate[:components][:zip] = zip_score

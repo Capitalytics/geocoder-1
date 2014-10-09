@@ -283,7 +283,9 @@ module Geocoder::US
     end
     
     def intersection?
-      Match[:at].match(@text) != nil
+      # geocoding intersection doesn't seem to work, and it is very slow, so disabling altogether
+      false
+      #Match[:at].match(@text) != nil
     end
   end
 end

@@ -1,6 +1,7 @@
 ## 1.0.6
 
 * Progressive ZIP scoring depending on number of common first digits
+* Disabling intersection geocoding as it doesn't seem to work, and working really slow
 
 ## 1.0.5
 
