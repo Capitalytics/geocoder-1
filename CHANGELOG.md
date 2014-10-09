@@ -1,3 +1,7 @@
+## 1.0.6
+
+* Progressive ZIP scoring depending on number of common first digits
+
 ## 1.0.5
 
 * Re-query for city when fallback to adjacent ZIP happens

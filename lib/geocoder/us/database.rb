@@ -467,8 +467,9 @@ module Geocoder::US
     def score_candidates! (address, candidates)
       for candidate in candidates
         candidate[:components] = {}
-        compare = [:prenum, :state, :zip]
-        denominator = compare.length + WEIGHTS[:street] + WEIGHTS[:city]
+        # compare = [:prenum, :state, :zip]
+        compare = [:prenum, :state]
+        denominator = compare.inject(0.0){|acc, field| acc + WEIGHTS[field]} + WEIGHTS[:street] + WEIGHTS[:city] + WEIGHTS[:zip]
 
         candidate[:street_score] ||= 1.0
         street_score = (1.0 - candidate[:street_score].to_f) * WEIGHTS[:street]
@@ -477,6 +478,14 @@ module Geocoder::US
         city_score   = (1.0 - candidate[:city_score].to_f) * WEIGHTS[:city]
         candidate[:components][:city] = city_score
         score = street_score + city_score
+
+        # score zip depending on the same leading digits
+        asked_zip = address.zip
+        found_zip = candidate[:zip]
+        similarity = (0..4).find{|i| asked_zip[i] != found_zip[i]}
+        zip_score = similarity ? similarity * 0.2 * WEIGHTS[:zip] : WEIGHTS[:zip]
+        candidate[:components][:zip] = zip_score
+        score += zip_score
 
         compare.each {|key|
           src  = address.send(key); src = src ? src.downcase : ""
