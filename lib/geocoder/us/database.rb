@@ -481,8 +481,17 @@ module Geocoder::US
         # score zip depending on the same leading digits
         asked_zip = address.zip
         found_zip = candidate[:zip] || ''
-        similarity = (0..4).find{|i| asked_zip[i] != found_zip[i]}
-        zip_score = similarity ? similarity * 0.2 * WEIGHTS[:zip] : WEIGHTS[:zip]
+
+        zip_score = 0.0
+        unless asked_zip.empty?
+          if asked_zip == found_zip
+            zip_score = WEIGHTS[:zip]
+          elsif asked_zip[0,3] == found_zip[0,3]
+            zip_score = 0.5 * WEIGHTS[:zip]
+          end
+        end
+#        similarity = (0..4).find{|i| asked_zip[i] != found_zip[i]}
+#        zip_score = similarity ? similarity * 0.2 * WEIGHTS[:zip] : WEIGHTS[:zip]
         candidate[:components][:zip] = zip_score
         score += zip_score
 
