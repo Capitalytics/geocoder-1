@@ -1,3 +1,7 @@
+## 1.0.7
+
+* Fixing progressive ZIP scoring with only two steps: first three digits equal (0.5), and all digits equal (1.0)
+
 ## 1.0.6
 
 * Progressive ZIP scoring depending on number of common first digits

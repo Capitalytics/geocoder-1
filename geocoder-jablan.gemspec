@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
     s.name          = 'geocoder-jablan'
-    s.version       = "1.0.6"
+    s.version       = "1.0.7"
     s.authors       = ["Schuyler Erle", "Mladen Jablanovic"]
     s.description   = "US address geocoding based on TIGER/Line."
     s.summary       = "US address geocoding based on TIGER/Line."
